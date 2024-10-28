@@ -92,6 +92,58 @@ class AdbClient(_BaseClient):
         return AdbDevice(self, serial)
 
 
+import asyncio
+from typing import List, Optional
+
+class AsyncAdbController:
+    def __init__(self, host: str = "127.0.0.1", port: int = 5037, socket_timeout: Optional[int] = None):
+        # Initialize AdbClient directly since it's a lightweight operation
+        self.adb = AdbClient(host=host, port=port, socket_timeout=socket_timeout)
+        
+    async def device_list(self) -> List[AdbDevice]:
+        """Get list of devices asynchronously"""
+        return await asyncio.to_thread(self.adb.device_list)
+        
+    async def connect(self, address: str, timeout: Optional[float] = None) -> str:
+        """Connect to a device asynchronously"""
+        return await asyncio.to_thread(self.adb.connect, address, timeout)
+        
+    async def disconnect(self, address: str, raise_error: bool = False) -> str:
+        """Disconnect from a device asynchronously"""
+        return await asyncio.to_thread(self.adb.disconnect, address, raise_error)
+
+    async def get_device(self, serial: Optional[str] = None) -> AdbDevice:
+        """Get a device by serial asynchronously"""
+        return await asyncio.to_thread(self.adb.device, serial)
+        
+    async def screenshot(self, device: AdbDevice):
+        """Take a screenshot asynchronously"""
+        return await asyncio.to_thread(device.screenshot)
+        
+    async def shell(self, device: AdbDevice, cmd: str, timeout: Optional[float] = None):
+        """Run shell command asynchronously"""
+        return await asyncio.to_thread(device.shell, cmd, timeout)
+
+    async def push(self, device: AdbDevice, local: str, remote: str):
+        """Push file asynchronously"""
+        return await asyncio.to_thread(lambda: device.sync.push(local, remote))
+
+    async def pull(self, device: AdbDevice, remote: str, local: str):
+        """Pull file asynchronously"""
+        return await asyncio.to_thread(lambda: device.sync.pull(remote, local))
+
+    async def install(self, device: AdbDevice, apk_path: str):
+        """Install APK asynchronously"""
+        return await asyncio.to_thread(device.install, apk_path)
+
+    async def uninstall(self, device: AdbDevice, package_name: str):
+        """Uninstall package asynchronously"""
+        return await asyncio.to_thread(device.uninstall, package_name)
+
+    async def get_app_info(self, device: AdbDevice, package_name: str):
+        """Get app info asynchronously"""
+        return await asyncio.to_thread(device.app_info, package_name)
+
 
 adb = AdbClient()
 device = adb.device
